@@ -1,0 +1,3 @@
+[submodule "sais-lite-lcp"]
+	path = sais-lite-lcp
+	url = git@github.com:jeffdaily/sais-lite-lcp.git
