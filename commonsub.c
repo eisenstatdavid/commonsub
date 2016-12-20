@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -31,8 +32,7 @@ static void Slurp(const char *filename) {
   Len = fread(Buf, sizeof *Buf, MaxLen, stream);
   if (ferror(stream)) goto fail;
   if (Len == MaxLen) {
-    fprintf(stderr, "%s: file is too large; increase InputMaxBytes\n",
-            filename);
+    fprintf(stderr, "%s: file is too large\n", filename);
     exit(EXIT_FAILURE);
   }
   for (int i = 0; i < Len; i++) {
@@ -50,6 +50,8 @@ fail:
 }
 
 static void FindCommonStrings(void) {
+  printf("{");
+  bool needComma = false;
   Stack = AllocateOrDie(MaxLen, sizeof *Stack);
   int lenCommPre = -1;
   for (int i = 0; i < Len; i++) {
@@ -57,7 +59,22 @@ static void FindCommonStrings(void) {
       int begin = Stack[lenCommPre];
       int count = i + 1 - begin;
       if (count > 1 && lenCommPre > 1) {
-        printf("%d\t%.*s\n", count, lenCommPre, Buf + SufArr[begin]);
+        if (needComma) {
+          printf(",\n");
+        }
+        printf("\"");
+        for (int j = 0; j < lenCommPre; j++) {
+          unsigned char c = Buf[SufArr[begin] + j];
+          if (iscntrl(c)) {
+            printf("\\u%.4x", c);
+          } else if (c == '\"' || c == '\\') {
+            printf("\\%c", c);
+          } else {
+            printf("%c", c);
+          }
+        }
+        printf("\": %d", count);
+        needComma = true;
       }
       lenCommPre--;
     }
@@ -66,26 +83,20 @@ static void FindCommonStrings(void) {
       Stack[lenCommPre] = i;
     }
   }
+  printf("}\n");
 }
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
-    fputs("usage: commonsub input\n", stderr);
+    fputs("usage: commonsub file\n", stderr);
     exit(EXIT_FAILURE);
   }
   Buf = AllocateOrDie(MaxLen, sizeof *Buf);
-  Len = 0;
   Slurp(argv[1]);
   Buf[Len] = UCHAR_MAX;
   Len++;
   SufArr = AllocateOrDie(MaxLen, sizeof *SufArr);
   LongCommPre = AllocateOrDie(MaxLen, sizeof *LongCommPre);
   sais(Buf, SufArr, LongCommPre, Len);
-  if (false) {
-    for (int i = 0; i < Len; i++) {
-      printf("%d\t%d\t%d\t%.*s\n", i, SufArr[i], LongCommPre[i],
-             Len - SufArr[i], Buf + SufArr[i]);
-    }
-  }
   FindCommonStrings();
 }
