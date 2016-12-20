@@ -36,7 +36,7 @@ static void Slurp(const char *filename) {
     exit(EXIT_FAILURE);
   }
   for (int i = 0; i < Len; i++) {
-    if (Buf[i] < 0) {
+    if (Buf[i] > SCHAR_MAX) {
       fprintf(stderr, "%s: file contains non-ASCII byte at offset %d\n",
               filename, i);
       exit(EXIT_FAILURE);
@@ -56,15 +56,13 @@ static void FindCommonStrings(void) {
   int lenCommPre = -1;
   for (int i = 0; i < Len; i++) {
     while (lenCommPre > LongCommPre[i]) {
-      int begin = Stack[lenCommPre];
-      int count = i + 1 - begin;
-      if (count > 1 && lenCommPre > 1) {
+      if (lenCommPre > 0) {
         if (needComma) {
           printf(",\n");
         }
         printf("\"");
         for (int j = 0; j < lenCommPre; j++) {
-          unsigned char c = Buf[SufArr[begin] + j];
+          unsigned char c = Buf[SufArr[i - 1] + j];
           if (iscntrl(c)) {
             printf("\\u%.4x", c);
           } else if (c == '\"' || c == '\\') {
@@ -73,7 +71,7 @@ static void FindCommonStrings(void) {
             printf("%c", c);
           }
         }
-        printf("\": %d", count);
+        printf("\": %d", i - Stack[lenCommPre] + 1);
         needComma = true;
       }
       lenCommPre--;

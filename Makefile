@@ -1,2 +1,2 @@
-commonsub: commonsub.c sais-lite-lcp/sais.c sais-lite-lcp/sais.h
-	$(CC) -o $@ commonsub.c sais-lite-lcp/sais.c -O3 -fomit-frame-pointer
+commonsub: commonsub.c sais-lite-lcp/sais.c sais-lite-lcp/sais.h Makefile
+	$(CC) -o $@ commonsub.c sais-lite-lcp/sais.c -ffast-math -O3 -funroll-loops -DNDEBUG
