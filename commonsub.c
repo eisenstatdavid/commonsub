@@ -52,7 +52,6 @@ fail:
 static void FindCommonStrings(void) {
   printf("{");
   bool needComma = false;
-  Stack = AllocateOrDie(MaxLen, sizeof *Stack);
   int lenCommPre = -1;
   for (int i = 0; i < Len; i++) {
     while (lenCommPre > LongCommPre[i]) {
@@ -96,5 +95,6 @@ int main(int argc, char *argv[]) {
   SufArr = AllocateOrDie(MaxLen, sizeof *SufArr);
   LongCommPre = AllocateOrDie(MaxLen, sizeof *LongCommPre);
   sais(Buf, SufArr, LongCommPre, Len);
+  Stack = AllocateOrDie(MaxLen, sizeof *Stack);
   FindCommonStrings();
 }
